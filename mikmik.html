@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Knitting Gallery</title>
+    <!-- Google Fonts (明朝体系フォントを追加) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,400&family=Shippori+Mincho:wght@500&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            font-family: sans-serif; 
+            margin: 0; 
+            background-color: #fdfbf7; 
+            color: #5c4033; 
+            -webkit-text-size-adjust: 100%;
+        }
+
+        header { 
+            background: #ffffff; 
+            padding: 15px 10px; 
+            text-align: center; 
+            border-bottom: 1px solid #e8e3d9; 
+            position: sticky; 
+            top: 0; 
+            z-index: 100; 
+        }
+
+        h1 { 
+            margin: 0; 
+            font-family: 'Cormorant Garamond', 'Shippori Mincho', serif; 
+            font-size: 28px; 
+            font-weight: 700; 
+            letter-spacing: 2px; 
+            cursor: pointer; 
+            color: #5c4033; 
+            user-select: none; 
+            transition: color 0.3s ease; 
+        }
+
+        nav { margin-top: 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+        nav button {
+            background: #f4efe6;
+            border: 1px solid #d8cfc4;
+            color: #5c4033;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        nav button:hover, nav button.active {
+            background: #5c4033;
+            color: #ffffff;
+            border-color: #5c4033;
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 15px; }
+
+        /* スライドショーのエリア */
+        .slideshow-container {
+            position: relative;
+            max-width: 1000px;
+            height: 260px;
+            margin: 0 auto 20px auto;
+            border-radius: 12px;
+            overflow: hidden;
+            background-color: #f4efe6;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (min-width: 600px) {
+            .slideshow-container { height: 350px; }
+        }
+
+        .slide-img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 98%;
+            height: 98%;
+            object-fit: contain;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .slide-img.cover-fit { 
+            width: 100%;
+            height: 100%;
+            object-fit: cover; 
+        }
+        .slide-img.active { opacity: 1; }
+
+        /* ギャラリーグリッド */
+        .gallery { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 12px; 
+        }
+
+        @media (min-width: 600px) {
+            .gallery {
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+                gap: 20px;
+            }
+        }
+        
+        /* カードのフリップ（くるっと回転するアニメーション）設定 */
+        .gallery-item { 
+            background: transparent; 
+            perspective: 1000px; /* 3D効果 */
+            height: 230px;
+        }
+        
+        @media (min-width: 600px) {
+            .gallery-item { height: 270px; }
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* ホバー（またはタップ）で180度回転 */
+        .gallery-item:hover .card-inner {
+            transform: rotateY(180deg);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.12);
+        }
+
+        /* 表と裏の共通スタイル */
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #ffffff;
+            box-sizing: border-box;
+        }
+
+        /* 表面のレイアウト */
+        .card-front {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .img-wrapper {
+            width: 100%;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #faf8f5;
+            overflow: hidden;
+        }
+        @media (min-width: 600px) {
+            .img-wrapper { height: 190px; }
+        }
+
+        .card-front img { 
+            width: 98%; 
+            height: 98%; 
+            display: block; 
+            object-fit: contain; 
+        }
+
+        .card-front img.fit-contain {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .item-details { padding: 10px; text-align: left; }
+        .item-title { font-size: 13px; margin: 0 0 4px 0; font-weight: bold; color: #5c4033; line-height: 1.3; }
+        .item-category { font-size: 11px; color: #8c7365; margin: 0; }
+
+        @media (min-width: 600px) {
+            .item-details { padding: 12px; }
+            .item-title { font-size: 14px; margin: 0 0 5px 0; }
+            .item-category { font-size: 12px; }
+        }
+
+        /* 裏面（お言葉・メッセージ）のレイアウト＆明朝体フォント設定 */
+        .card-back {
+            transform: rotateY(180deg);
+            background-color: #f7f3eb;
+            border: 1px solid #e2dad0;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #4a3429;
+            font-family: 'Shippori Mincho', 'Cormorant Garamond', serif;
+        }
+        .card-back p {
+            font-size: 13px;
+            line-height: 1.85;
+            margin: 0;
+            word-break: break-word;
+            letter-spacing: 0.05em;
+            text-align: center;
+        }
+        @media (min-width: 600px) {
+            .card-back p { font-size: 14px; }
+        }
+
+        #about-page { 
+            background: #ffffff; 
+            padding: 25px 20px; 
+            border-radius: 8px; 
+            max-width: 600px; 
+            margin: 20px auto; 
+            text-align: center; 
+            display: none; 
+            line-height: 1.8;
+            font-size: 14px;
+            font-family: 'Shippori Mincho', serif;
+        }
+        @media (min-width: 600px) {
+            #about-page { padding: 30px; font-size: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ホバー時の効果音要素 -->
+<audio id="hover-sound" src="pop.mp3" preload="auto"></audio>
+
+<header>
+    <h1 id="site-title" onclick="changeTitleColor()">mikmik Knitting Gallery</h1>
+    
+    <nav>
+        <button class="menu-btn active" onclick="filterCategory('all', this)">すべて</button>
+        <button class="menu-btn" onclick="filterCategory('hat', this)">帽子</button>
+        <button class="menu-btn" onclick="filterCategory('mitten', this)">手袋</button>
+        <button class="menu-btn" onclick="filterCategory('earmuff', this)">イヤーマフ</button>
+        <button class="menu-btn" onclick="filterCategory('other', this)">その他</button>
+        <button class="menu-btn" onclick="showAbout(this)">あいさつ</button>
+    </nav>
+</header>
+
+<div class="container">
+    <!-- スライドショー -->
+    <div class="slideshow-container" id="slideshow">
+        <img class="slide-img active" src="image_0.png" alt="スライド0">
+        <img class="slide-img" src="image_1.png" alt="スライド1">
+        <img class="slide-img" src="image_2.png" alt="スライド2">
+        <img class="slide-img" src="image_3.png" alt="スライド3">
+        <img class="slide-img" src="image_4.png" alt="スライド4">
+        <img class="slide-img" src="image_5.png" alt="スライド5">
+        <img class="slide-img" src="image_6.png" alt="スライド6">
+        <img class="slide-img" src="image_7.png" alt="スライド7">
+        <img class="slide-img" src="image_8.png" alt="スライド8">
+        <img class="slide-img" src="image_9.png" alt="スライド9">
+        <img class="slide-img" src="image_10.png" alt="スライド10">
+        <img class="slide-img" src="image_11.png" alt="スライド11">
+        <img class="slide-img" src="image_12.png" alt="スライド12">
+        <img class="slide-img cover-fit" src="image_13.png" alt="スライド13">
+        <img class="slide-img" src="image_14.png" alt="スライド14">
+        <img class="slide-img" src="image_15.png" alt="スライド15">
+        <img class="slide-img" src="image_16.png" alt="スライド16">
+        <img class="slide-img" src="image_17.png" alt="スライド17">
+        <img class="slide-img" src="image_18.png" alt="スライド18">
+        <img class="slide-img" src="image_19.png" alt="スライド19">
+        <img class="slide-img" src="image_20.png" alt="スライド20">
+        <img class="slide-img" src="image_21.png" alt="スライド21">
+        <img class="slide-img" src="image_22.png" alt="スライド22">
+        <img class="slide-img" src="image_23.png" alt="スライド23">
+        <img class="slide-img" src="image_24.png" alt="スライド24">
+        <img class="slide-img" src="image_25.png" alt="スライド25">
+        <img class="slide-img" src="image_26.png" alt="スライド26">
+        <img class="slide-img" src="image_27.png" alt="スライド27">
+        <img class="slide-img" src="image_28.png" alt="スライド28">
+        <img class="slide-img" src="image_29.png" alt="スライド29">
+        <img class="slide-img" src="image_30.png" alt="スライド30">
+        <img class="slide-img" src="image_31.png" alt="スライド31">
+        <img class="slide-img" src="image_32.png" alt="スライド32">
+    </div>
+
+    <main class="gallery" id="gallery">
+        <div class="gallery-item mitten">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_0.png" alt="作品0"></div>
+                    <div class="item-details"><p class="item-title">マシュマロと焚き火の手袋</p><p class="item-category">手袋</p></div>
+                </div>
+                <div class="card-back">
+                    <p>パチパチ弾ける火と、<br>きみのおかげで、<br>暗い夜でもあたたかい</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item hat">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_1.png" alt="作品1"></div>
+                    <div class="item-details"><p class="item-title">ふわふわのカフェオレな帽子</p><p class="item-category">帽子</p></div>
+                </div>
+                <div class="card-back">
+                    <p>両手でコップを持ち温まる<br>あかい鼻のきみ</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item hat">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_2.png" alt="作品2"></div>
+                    <div class="item-details"><p class="item-title">ふわふわの猫な帽子</p><p class="item-category">帽子</p></div>
+                </div>
+                <div class="card-back">
+                    <p>窓際で降ってくる月を見る猫</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item hat">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_3.png" alt="作品3"></div>
+                    <div class="item-details"><p class="item-title">一番星の帽子</p><p class="item-category">帽子</p></div>
+                </div>
+                <div class="card-back">
+                    <p>澄んだ冬の夜空にひとつだけ輝く一番星</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item hat">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_4.png" alt="作品4"></div>
+                    <div class="item-details"><p class="item-title">レトロチューリップな帽子</p><p class="item-category">帽子</p></div>
+                </div>
+                <div class="card-back">
+                    <p>懐かしい、レトロを集めた<br>雑貨屋さん</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item hat">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_5.png" alt="作品5"></div>
+                    <div class="item-details"><p class="item-title">moonにshootな帽子</p><p class="item-category">帽子</p></div>
+                </div>
+                <div class="card-back">
+                    <p>月を目指して飛んでいく。
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item hat">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_6.png" alt="作品6"></div>
+                    <div class="item-details"><p class="item-title">真っ赤なハートを隠した帽子</p><p class="item-category">帽子</p></div>
+                </div>
+                <div class="card-back">
+                    <p>こっそり隠したひみつ</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item hat">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_8.png" alt="作品8"></div>
+                    <div class="item-details"><p class="item-title">ふわふわバケハ</p><p class="item-category">帽子</p></div>
+                </div>
+                <div class="card-back">
+                    <p>白い靴下を履いた猫</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item hat">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_9.png" alt="作品9"></div>
+                    <div class="item-details"><p class="item-title">バタフライなビーニー</p><p class="item-category">帽子</p></div>
+                </div>
+                <div class="card-back">
+                    <p>あの人みたいになりたい、<br>憧れバタフライ</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item other">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_10.png" alt="作品10" class="fit-contain"></div>
+                    <div class="item-details"><p class="item-title">ボイルエビのあみぐるみ</p><p class="item-category">その他</p></div>
+                </div>
+                <div class="card-back">
+                    <p>夕食のぷりぷりボイルエビ</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item other">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_11.png" alt="作品11"></div>
+                    <div class="item-details"><p class="item-title">パールのがま口ポーチ 水色</p><p class="item-category">その他</p></div>
+                </div>
+                <div class="card-back">
+                    <p>シュワシュワラムネと<br>涼しい風</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item other">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_12.png" alt="作品12"></div>
+                    <div class="item-details"><p class="item-title">パールのがま口ポーチ 白</p><p class="item-category">その他</p></div>
+                </div>
+                <div class="card-back">
+                    <p>ミルキーなかき氷を半分こ</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item other">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_13.png" alt="作品13"></div>
+                    <div class="item-details"><p class="item-title">幻想の四季編み</p><p class="item-category">その他</p></div>
+                </div>
+                <div class="card-back">
+                    <p>ファンタジーと春夏秋冬を閉じ込めた<br>巻き物の本</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item hat">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_14.png" alt="作品14"></div>
+                    <div class="item-details"><p class="item-title">黒×ピンクのねこ耳ファー帽子</p><p class="item-category">帽子</p></div>
+                </div>
+                <div class="card-back">
+                    <p>クールな黒と甘いピンクの<br>ツンデレ猫</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item hat">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_15.png" alt="作品15"></div>
+                    <div class="item-details"><p class="item-title">ビビッドピンクの耳あてつき帽子</p><p class="item-category">帽子</p></div>
+                </div>
+                <div class="card-back">
+                    <p>まわりも明るく、<br>暖かくしてくれる。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item hat">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_16.png" alt="作品16"></div>
+                    <div class="item-details"><p class="item-title">ふわふわバラクラバ 水色×茶</p><p class="item-category">帽子</p></div>
+                </div>
+                <div class="card-back">
+                    <p>寒いけどアイス食べたいね。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item hat">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_17.png" alt="作品17"></div>
+                    <div class="item-details"><p class="item-title">レッド＆グレーのビーニー</p><p class="item-category">帽子</p></div>
+                </div>
+                <div class="card-back">
+                    <p>カッコいいしあったかいの、<br>ちょっとずるだね</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item earmuff">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_18.png" alt="作品18"></div>
+                    <div class="item-details"><p class="item-title">初雪のイヤーマフ</p><p class="item-category">イヤーマフ</p></div>
+                </div>
+                <div class="card-back">
+                    <p>今年初めての雪、<br>私もおそろい</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item other">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_19.png" alt="作品19"></div>
+                    <div class="item-details"><p class="item-title">にゃんこのがま口</p><p class="item-category">その他</p></div>
+                </div>
+                <div class="card-back">
+                    <p>もう私、こどもじゃないよ</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item other">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_20.png" alt="作品20"></div>
+                    <div class="item-details"><p class="item-title">ポッピングつぶつぶがま口ポーチ</p><p class="item-category">その他</p></div>
+                </div>
+                <div class="card-back">
+                    <p>甘くて、口も心も<br>はじけるお菓子</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item mitten">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_21.png" alt="作品21"></div>
+                    <div class="item-details"><p class="item-title">サファイアブルーのアームカバー</p><p class="item-category">手袋</p></div>
+                </div>
+                <div class="card-back">
+                    <p>さりげないけど、<br>忘れられない。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item mitten">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_22.png" alt="作品22"></div>
+                    <div class="item-details"><p class="item-title">フリルミトン ブルーグレー</p><p class="item-category">手袋</p></div>
+                </div>
+                <div class="card-back">
+                    <p>君は気づかない、<br>さりげないかわいい。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item mitten">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_23.png" alt="作品23"></div>
+                    <div class="item-details"><p class="item-title">フリルミトン イエロー</p><p class="item-category">手袋</p></div>
+                </div>
+                <div class="card-back">
+                    <p>わたしが元気にしてあげる。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 追加画像（24〜32） -->
+        <div class="gallery-item earmuff">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_24.png" alt="作品24"></div>
+                    <div class="item-details"><p class="item-title">星のふわふわイヤーマフ</p><p class="item-category">イヤーマフ</p></div>
+                </div>
+                <div class="card-back">
+                    <p>かわいいだけじゃ<br>ないからね。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item earmuff">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_25.png" alt="作品25"></div>
+                    <div class="item-details"><p class="item-title">紺と茶のイヤーマフ</p><p class="item-category">イヤーマフ</p></div>
+                </div>
+                <div class="card-back">
+                    <p>大人になっちゃったけど、<br>好きなものは好き。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item other">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_26.png" alt="作品26"></div>
+                    <div class="item-details"><p class="item-title">えびアボカドチーズトーストのポーチ</p><p class="item-category">その他</p></div>
+                </div>
+                <div class="card-back">
+                    <p>青い空の朝の、<br>ちょっと豪華な朝ごはん</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item earmuff">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_27.png" alt="作品27"></div>
+                    <div class="item-details"><p class="item-title">ポンポン紐のイヤーマフ 赤</p><p class="item-category">イヤーマフ</p></div>
+                </div>
+                <div class="card-back">
+                    <p>クラシカルでキュートな<br>素敵なあの子</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item mitten">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_28.png" alt="作品28"></div>
+                    <div class="item-details"><p class="item-title">星の手袋</p><p class="item-category">手袋</p></div>
+                </div>
+                <div class="card-back">
+                    <p>シックだけど、<br>遊び心も忘れない。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item other">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_29.png" alt="作品29"></div>
+                    <div class="item-details"><p class="item-title">目玉焼きのキーホルダー</p><p class="item-category">その他</p></div>
+                </div>
+                <div class="card-back">
+                    <p>ベーコン切らしてた、、</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item mitten">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_30.png" alt="作品30"></div>
+                    <div class="item-details"><p class="item-title">フリルミトン ターコイズブルー</p><p class="item-category">手袋</p></div>
+                </div>
+                <div class="card-back">
+                    <p>朝の湖に、<br>手をくぐらす。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item hat">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_31.png" alt="作品31"></div>
+                    <div class="item-details"><p class="item-title">秋の帽子</p><p class="item-category">帽子</p></div>
+                </div>
+                <div class="card-back">
+                    <p>もみじとイチョウと<br>お散歩しに行こう</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item earmuff">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="img-wrapper"><img src="image_32.png" alt="作品32"></div>
+                    <div class="item-details"><p class="item-title">星のふわふわイヤーマフ</p><p class="item-category">イヤーマフ</p></div>
+                </div>
+                <div class="card-back">
+                    <p>夜は暗いのに、<br>いつも見える星。</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <section id="about-page">
+        <h2>Welcome ☺︎</h2>
+        <p>無の中には、物語がある。</p>
+        <p>何もないように見えるものは、</p>
+        <p>何かを見つけるためのヒントなのかもしれない。</p>
+        <p>無は、もしかすると「有」なのかもしれない。</p>
+        <p>私は、日々の中で拾った記憶や感情を、</p>
+        <p>編み物という自分の言語で形にしていく。</p>
+        <p>一つひとつの編み目に時間を重ねながら、</p>
+        <p>目に見えないものを、触れられるものへ。</p>
+        <p>私の中にある物語を、編んでいく。</p>
+    </section>
+</div>
+
+<script>
+    const colors = ['#d98282', '#82a3d9', '#82d9a5', '#d9b882', '#5c4033'];
+    let currentColorIndex = 0;
+
+    function changeTitleColor() {
+        const title = document.getElementById('site-title');
+        title.style.color = colors[currentColorIndex];
+        currentColorIndex = (currentColorIndex + 1) % colors.length;
+    }
+
+    const slides = document.querySelectorAll('.slide-img');
+    let currentSlide = 0;
+
+    setInterval(() => {
+        slides[currentSlide].classList.remove('active');
+        currentSlide = (currentSlide + 1) % slides.length;
+        slides[currentSlide].classList.add('active');
+    }, 3000);
+
+    function filterCategory(category, btn) {
+        if (category === 'all') {
+            document.getElementById('slideshow').style.display = 'flex';
+        } else {
+            document.getElementById('slideshow').style.display = 'none';
+        }
+
+        document.getElementById('gallery').style.display = 'grid';
+        document.getElementById('about-page').style.display = 'none';
+        setActiveButton(btn);
+
+        const items = document.querySelectorAll('.gallery-item');
+        items.forEach(item => {
+            if (category === 'all' || item.classList.contains(category)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    function showAbout(btn) {
+        document.getElementById('slideshow').style.display = 'none';
+        document.getElementById('gallery').style.display = 'none';
+        document.getElementById('about-page').style.display = 'block';
+        setActiveButton(btn);
+    }
+
+    function setActiveButton(btn) {
+        const buttons = document.querySelectorAll('.menu-btn');
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    /* 全てのギャラリーカードにホバー音を設定 */
+    const hoverSound = document.getElementById('hover-sound');
+    const galleryItems = document.querySelectorAll('.gallery-item');
+
+    galleryItems.forEach(item => {
+        item.addEventListener('mouseenter', () => {
+            if (hoverSound) {
+                hoverSound.currentTime = 0;
+                hoverSound.play().catch(() => {});
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
